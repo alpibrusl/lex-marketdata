@@ -19,7 +19,7 @@ type MarketDataError =
     SymbolNotFound(Str)
   | StaleData(Str, Str)     # (symbol, last_timestamp)
   | ConnectionError(Str)
-  | ParseError(Str)
+  | MdParseError(Str)
 
 fn mid(q :: Quote) -> d.Decimal {
   let sum := d.add(q.bid, q.ask)
