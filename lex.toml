@@ -2,6 +2,7 @@
 name    = "lex-marketdata"
 version = "0.1.0"
 lex     = "0.9.7"
+
 [dependencies]
-lex-money = { path = "../lex-money" }
-lex-orm   = { path = "../lex-orm" }
+lex-money = { git = "https://github.com/alpibrusl/lex-money" }
+lex-orm   = { git = "https://github.com/alpibrusl/lex-orm" }
