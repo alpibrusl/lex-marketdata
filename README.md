@@ -1,37 +1,79 @@
 # lex-marketdata
 
-Market data types and reference data for the [Lex language](https://github.com/alpibrusl/lex-lang).
+Market data types and reference data for Lex.
 
-Defines the shared types used across market-data consumers. The mock module provides deterministic quote values for tests and simulation without any live-feed effects. The `Subscription` / `SubscriptionList` types describe symbol subscriptions for a runtime adapter.
+Defines the shared `Quote`, `Instrument`, and `Subscription` types used across the stack. The mock module provides deterministic canned quotes for testing and simulation — no network calls, no flaky tests.
 
-## What it ships
+**Current state:** `mock.lex` is hardcoded to 3 symbols (AAPL/MSFT/TSLA). A live feed adapter is tracked in [issue #1](https://github.com/alpibrusl/lex-marketdata/issues/1).
 
-- **`src/quote.lex`** — `Quote` (`symbol`, `bid`, `ask`, `last`, `timestamp`), `MarketDataError` (`SymbolNotFound` / `StaleData` / `ConnectionError` / `MdParseError`), `mid` and `spread` helpers.
-- **`src/market_data.lex`** — `Subscription` and `SubscriptionList` types for runtime subscription configuration. Pure; the actual feed adapter lives at the server layer.
-- **`src/refdata.lex`** — `Instrument` (`symbol`, `isin`, `cusip`, `lei`, `name`, `currency`, `exchange`, `asset_class`), `AssetClass` ADT, `RefDataError`.
-- **`src/refdata_store.lex`** — SQL-backed instrument store (`init`, `fetch`, `upsert`). Effects: `[sql]`.
-- **`src/mock.lex`** — Pure canned quotes for AAPL (174.91), MSFT (418.51), TSLA (172.41). `get_quote(symbol)` and `get_reference_price(symbol)` with no effects. Used by lex-oms for margin and risk calculations in demo mode.
+---
 
-## Usage
+## Modules
+
+### `quote.lex` — market data types
+
+```lex
+type Quote = { symbol :: Str, bid :: d.Decimal, ask :: d.Decimal, last :: d.Decimal, timestamp :: Str }
+type MarketDataError = SymbolNotFound | StaleData | ConnectionError | MdParseError
+```
+
+`mid(quote)` and `spread(quote)` helpers.
+
+### `mock.lex` — deterministic simulation (no effects)
 
 ```lex
 import "lex-marketdata/src/mock" as mock
 
-match mock.get_reference_price("AAPL") {
-  Err(_) => # symbol not in mock set
-  Ok(p)  => # p is a Decimal (e.g. { coefficient: 17491, exponent: -2 })
+match mock.get_quote("AAPL") {
+  Ok(q)  => # q.ask = $174.91  (hardcoded, deterministic)
+  Err(_) => # symbol not in mock set — only AAPL, MSFT, TSLA
 }
 ```
 
-## Effects
+Used by `lex-oms` for margin and risk calculations in demo mode. Zero effects — every test run gets the same prices.
 
-`quote.lex`, `market_data.lex`, `refdata.lex`, `mock.lex` — none (pure). `refdata_store.lex` — `[sql]`.
+### `refdata.lex` — instrument reference data
 
-## Dependencies
+```lex
+type Instrument = { symbol :: Str, isin :: Str, cusip :: Str, lei :: Str,
+                    name :: Str, currency :: ccy.Currency, exchange :: Str,
+                    asset_class :: AssetClass }
+type AssetClass = Equity | FixedIncome | Commodity | FX | Derivative | ETF
+```
 
-- **lex-money** — `Decimal` for bid/ask/last prices.
-- **lex-orm** — SQL connection for `refdata_store.lex`.
+### `refdata_store.lex` — SQL-backed instrument store
+
+`init`, `fetch`, `upsert`. Effects: `[sql]`.
+
+### `market_data.lex` — subscription types
+
+`Subscription` and `SubscriptionList` describe symbol subscriptions for a runtime feed adapter. Pure; the actual feed implementation is not yet in this repo.
 
 ---
 
-Built under the principles of [Trust Without Comprehension](https://alpibru.com/manifesto).
+## In the stack
+
+```
+lex-money
+    ↓
+lex-marketdata  ←  quotes and reference data
+    ↓
+lex-risk · lex-oms
+```
+
+`lex-risk` uses mark prices to compute notional and unrealized PnL. `lex-oms` uses `mock.get_reference_price` for margin pre-trade checks.
+
+---
+
+## What's next
+
+A live feed adapter (`src/feed_polygon.lex`) would implement the same `get_quote` interface using a `[net, env]` call to Polygon.io. The type contract is already defined — only the implementation is missing. See [issue #1](https://github.com/alpibrusl/lex-marketdata/issues/1).
+
+---
+
+## Install
+
+```toml
+[dependencies]
+"lex-marketdata" = { git = "https://github.com/alpibrusl/lex-marketdata" }
+```
