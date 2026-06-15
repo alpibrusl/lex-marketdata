@@ -7,19 +7,9 @@
 
 import "lex-money/src/decimal" as d
 
-type Quote = {
-  symbol    :: Str,
-  bid       :: d.Decimal,
-  ask       :: d.Decimal,
-  last      :: d.Decimal,
-  timestamp :: Str,          # UTC, format "YYYYMMDD-HH:MM:SS.mmm"
-}
+type Quote = { symbol :: Str, bid :: d.Decimal, ask :: d.Decimal, last :: d.Decimal, timestamp :: Str }
 
-type MarketDataError =
-    SymbolNotFound(Str)
-  | StaleData(Str, Str)     # (symbol, last_timestamp)
-  | ConnectionError(Str)
-  | MdParseError(Str)
+type MarketDataError = SymbolNotFound(Str) | StaleData((Str, Str)) | ConnectionError(Str) | MdParseError(Str)
 
 fn mid(q :: Quote) -> d.Decimal {
   let sum := d.add(q.bid, q.ask)
@@ -29,3 +19,4 @@ fn mid(q :: Quote) -> d.Decimal {
 fn spread(q :: Quote) -> d.Decimal {
   d.sub(q.ask, q.bid)
 }
+

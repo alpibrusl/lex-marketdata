@@ -14,49 +14,37 @@ fn make_price(c :: Int, e :: Int) -> d.Decimal {
 }
 
 fn aapl() -> q.Quote {
-  {
-    symbol:    "AAPL",
-    bid:       make_price(17490, -2),   # 174.90
-    ask:       make_price(17492, -2),   # 174.92
-    last:      make_price(17491, -2),   # 174.91
-    timestamp: "20260528-09:30:00.000",
-  }
+  { symbol: "AAPL", bid: make_price(17490, -2), ask: make_price(17492, -2), last: make_price(17491, -2), timestamp: "20260528-09:30:00.000" }
 }
 
 fn msft() -> q.Quote {
-  {
-    symbol:    "MSFT",
-    bid:       make_price(41850, -2),   # 418.50
-    ask:       make_price(41852, -2),   # 418.52
-    last:      make_price(41851, -2),   # 418.51
-    timestamp: "20260528-09:30:00.000",
-  }
+  { symbol: "MSFT", bid: make_price(41850, -2), ask: make_price(41852, -2), last: make_price(41851, -2), timestamp: "20260528-09:30:00.000" }
 }
 
 fn tsla() -> q.Quote {
-  {
-    symbol:    "TSLA",
-    bid:       make_price(17240, -2),   # 172.40
-    ask:       make_price(17243, -2),   # 172.43
-    last:      make_price(17241, -2),   # 172.41
-    timestamp: "20260528-09:30:00.000",
-  }
+  { symbol: "TSLA", bid: make_price(17240, -2), ask: make_price(17243, -2), last: make_price(17241, -2), timestamp: "20260528-09:30:00.000" }
 }
 
 fn get_quote(symbol :: Str) -> Result[q.Quote, q.MarketDataError] {
-  if symbol == "AAPL" { Ok(aapl()) }
-  else {
-    if symbol == "MSFT" { Ok(msft()) }
-    else {
-      if symbol == "TSLA" { Ok(tsla()) }
-      else { Err(q.SymbolNotFound(symbol)) }
+  if symbol == "AAPL" {
+    Ok(aapl())
+  } else {
+    if symbol == "MSFT" {
+      Ok(msft())
+    } else {
+      if symbol == "TSLA" {
+        Ok(tsla())
+      } else {
+        Err(q.SymbolNotFound(symbol))
+      }
     }
   }
 }
 
 fn get_reference_price(symbol :: Str) -> Result[d.Decimal, q.MarketDataError] {
   match get_quote(symbol) {
-    Err(e)    => Err(e),
+    Err(e) => Err(e),
     Ok(quote) => Ok(quote.last),
   }
 }
+

@@ -15,10 +15,7 @@ import "./quote" as q
 
 # Describes a market-data subscription intent.
 # The runtime resolves on_quote to a registered callback by name.
-type Subscription = {
-  symbol   :: Str,
-  on_quote :: Str,
-}
+type Subscription = { symbol :: Str, on_quote :: Str }
 
 fn subscription(symbol :: Str, handler :: Str) -> Subscription {
   { symbol: symbol, on_quote: handler }
@@ -33,3 +30,4 @@ fn subscribe_all(symbols :: List[Str], handler :: Str) -> SubscriptionList {
     subscription(sym, handler)
   })
 }
+

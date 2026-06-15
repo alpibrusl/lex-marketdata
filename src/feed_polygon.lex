@@ -8,12 +8,16 @@
 #
 # Effects: [net]
 
-import "std.net"   as net
+import "std.net" as net
+
 import "std.float" as float
-import "std.int"   as int
-import "std.list"  as list
+
+import "std.int" as int
+
+import "std.list" as list
 
 import "lex-money/src/decimal" as d
+
 import "lex-schema/json_value" as jv
 
 import "./quote" as q
@@ -37,19 +41,19 @@ fn polygon_prev_url(ticker :: Str, api_key :: Str) -> Str {
 
 fn extract_timestamp(item :: jv.Json) -> Str {
   match jv.get_field(item, "t") {
-    None            => "",
-    Some(JInt(n))   => int.to_str(n),
+    None => "",
+    Some(JInt(n)) => int.to_str(n),
     Some(JFloat(f)) => float.to_str(f),
-    Some(_)         => "",
+    Some(_) => "",
   }
 }
 
 fn extract_close(item :: jv.Json, ticker :: Str) -> Result[Float, q.MarketDataError] {
   match jv.get_field(item, "c") {
-    None            => Err(MdParseError("missing 'c' field for " + ticker)),
+    None => Err(MdParseError("missing 'c' field for " + ticker)),
     Some(JFloat(f)) => Ok(f),
-    Some(JInt(n))   => Ok(int.to_float(n)),
-    Some(_)         => Err(MdParseError("'c' is not numeric for " + ticker)),
+    Some(JInt(n)) => Ok(int.to_float(n)),
+    Some(_) => Err(MdParseError("'c' is not numeric for " + ticker)),
   }
 }
 
@@ -65,11 +69,11 @@ fn build_quote(ticker :: Str, item :: jv.Json) -> Result[q.Quote, q.MarketDataEr
 
 fn parse_response(ticker :: Str, body :: Str) -> Result[q.Quote, q.MarketDataError] {
   match jv.parse(body) {
-    Err(_)   => Err(MdParseError("JSON parse failed for " + ticker)),
+    Err(_) => Err(MdParseError("JSON parse failed for " + ticker)),
     Ok(json) => match jv.get_field(json, "results") {
-      None                => Err(MdParseError("missing 'results' for " + ticker)),
-      Some(JList(items))  => match list.head(items) {
-        None       => Err(SymbolNotFound(ticker)),
+      None => Err(MdParseError("missing 'results' for " + ticker)),
+      Some(JList(items)) => match list.head(items) {
+        None => Err(SymbolNotFound(ticker)),
         Some(item) => build_quote(ticker, item),
       },
       Some(_) => Err(MdParseError("'results' is not a list for " + ticker)),
@@ -81,8 +85,8 @@ fn parse_response(ticker :: Str, body :: Str) -> Result[q.Quote, q.MarketDataErr
 # Returns Ok(Quote) with last=close, bid=close-$0.01, ask=close+$0.01.
 fn get_quote(ticker :: Str, api_key :: Str) -> [net] Result[q.Quote, q.MarketDataError] {
   match net.get(polygon_prev_url(ticker, api_key)) {
-    Err(msg)  => Err(ConnectionError(msg)),
-    Ok(body)  => parse_response(ticker, body),
+    Err(msg) => Err(ConnectionError(msg)),
+    Ok(body) => parse_response(ticker, body),
   }
 }
 
@@ -93,3 +97,4 @@ fn get_quotes(tickers :: List[Str], api_key :: Str) -> [net] List[Result[q.Quote
     Some(ticker) => list.concat([get_quote(ticker, api_key)], get_quotes(list.tail(tickers), api_key)),
   }
 }
+
