@@ -1,5 +1,9 @@
 # lex-marketdata
 
+[![CI](https://github.com/alpibrusl/lex-marketdata/actions/workflows/ci.yml/badge.svg)](https://github.com/alpibrusl/lex-marketdata/actions/workflows/ci.yml)
+
+**Part of the [Lex](https://lexlang.org) project** — Finance · [Manifesto](https://lexlang.org/manifesto) · [All packages](https://lexlang.org)
+
 Market data types and reference data for Lex.
 
 Defines the shared `Quote`, `Instrument`, and `Subscription` types used across the stack. The mock module provides deterministic canned quotes for testing and simulation — no network calls, no flaky tests.
