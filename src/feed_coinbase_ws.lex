@@ -140,28 +140,24 @@ fn quote_from_ticker(obj :: jv.Json) -> Option[q.Quote] {
 # parsed ticker frame; any frame that isn't a recognized "ticker" message
 # (the initial "subscriptions" ack, heartbeats, etc.) is silently skipped.
 fn listen(product_ids :: List[Str], on_tick :: (q.Quote) -> [sql, time] Unit) -> [net, sql, time] Result[Unit, Str] {
-  net.dial_ws(
-    coinbase_url(),
-    "",
-    fn () -> [sql, time] WsAction {
-      WsSend(subscribe_msg(product_ids))
-    },
-    fn (msg :: WsMessage) -> [sql, time] WsAction {
-      match msg {
-        WsText(body) => {
-          let _ := match jv.parse(body) {
-            Ok(obj) => match quote_from_ticker(obj) {
-              Some(quote) => on_tick(quote),
-              None => (),
-            },
-            Err(_) => (),
-          }
-          WsNoOp
-        },
-        WsBinary(_) => WsNoOp,
-        WsPing => WsNoOp,
-        WsClose => WsNoOp,
-      }
-    },
-  )
+  net.dial_ws(coinbase_url(), "", fn () -> [sql, time] WsAction {
+    WsSend(subscribe_msg(product_ids))
+  }, fn (msg :: WsMessage) -> [sql, time] WsAction {
+    match msg {
+      WsText(body) => {
+        let __lex_discard_1 := match jv.parse(body) {
+          Ok(obj) => match quote_from_ticker(obj) {
+            Some(quote) => on_tick(quote),
+            None => (),
+          },
+          Err(_) => (),
+        }
+        WsNoOp
+      },
+      WsBinary(_) => WsNoOp,
+      WsPing => WsNoOp,
+      WsClose => WsNoOp,
+    }
+  })
 }
+
