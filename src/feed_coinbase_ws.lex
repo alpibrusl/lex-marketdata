@@ -18,14 +18,14 @@
 # internally, invoking `on_message` per inbound frame) — callers that want
 # this running in the background should spawn `listen` under std.conc.
 #
-# `on_tick`'s effect row is deliberately concrete (`[sql]`), not generic —
+# `on_tick`'s effect row is deliberately concrete (`[sql, time]`), not generic —
 # this toolchain's user-level functions don't support row-polymorphic
 # effects (only builtins like dial_ws itself do, via the Rust type
-# checker). `[sql]` matches the one real consumer this adapter has today
+# checker). `[sql, time]` matches the one real consumer this adapter has today
 # (caching the latest tick into a table); broaden this if a consumer with
 # a genuinely different effect need shows up.
 #
-# Effects: [net, sql]
+# Effects: [net, sql, time]
 
 import "std.net" as net
 
@@ -139,14 +139,14 @@ fn quote_from_ticker(obj :: jv.Json) -> Option[q.Quote] {
 # Blocks for the lifetime of the connection. `on_tick` is invoked once per
 # parsed ticker frame; any frame that isn't a recognized "ticker" message
 # (the initial "subscriptions" ack, heartbeats, etc.) is silently skipped.
-fn listen(product_ids :: List[Str], on_tick :: (q.Quote) -> [sql] Unit) -> [net, sql] Result[Unit, Str] {
+fn listen(product_ids :: List[Str], on_tick :: (q.Quote) -> [sql, time] Unit) -> [net, sql, time] Result[Unit, Str] {
   net.dial_ws(
     coinbase_url(),
     "",
-    fn () -> [sql] WsAction {
+    fn () -> [sql, time] WsAction {
       WsSend(subscribe_msg(product_ids))
     },
-    fn (msg :: WsMessage) -> [sql] WsAction {
+    fn (msg :: WsMessage) -> [sql, time] WsAction {
       match msg {
         WsText(body) => {
           let _ := match jv.parse(body) {
