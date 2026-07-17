@@ -138,3 +138,4 @@ fn price_at(prices :: List[HourlyPrice], zone :: Str, hour :: Int) -> Option[d.D
     None => None,
   }
 }
+

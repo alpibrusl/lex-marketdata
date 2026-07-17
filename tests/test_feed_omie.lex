@@ -20,6 +20,8 @@ fn fixture() -> Str {
   "MARGINALPDBC;\n2026;07;16;1;173.58;170.10;\n2026;07;16;2;169.04;169.04;\ngarbage line\n2026;07;16;3;;168.15;\n*\n"
 }
 
+# Expects 5 rows: h1 (PT+ES) + h2 (PT+ES) + h3 (ES only — the empty PT field is
+# skipped, not parsed as zero).
 fn test_parses_zones_and_decimals() -> Result[Unit, Str] {
   match omie.parse_marginalpdbc(fixture()) {
     Err(e) => Err(str.concat("should parse: ", e)),
@@ -45,8 +47,15 @@ fn test_parses_zones_and_decimals() -> Result[Unit, Str] {
         Some(p) => d.to_str(p) == "168.15",
         None => false,
       }
-      # rows: h1 (PT+ES) + h2 (PT+ES) + h3 (ES only; empty PT skipped) = 5
-      assert_true(n == 5 and es1_ok and pt1_ok and pt3_absent and es3_ok, str.concat("parsed shape wrong, n=", str.concat(if es1_ok { "e" } else { "E" }, if pt3_absent { "a" } else { "A" })))
+      assert_true(n == 5 and es1_ok and pt1_ok and pt3_absent and es3_ok, str.concat("parsed shape wrong, n=", str.concat(if es1_ok {
+        "e"
+      } else {
+        "E"
+      }, if pt3_absent {
+        "a"
+      } else {
+        "A"
+      })))
     },
   }
 }
@@ -73,3 +82,4 @@ fn run_all() -> [io, sql, fs_read, fs_write, time, crypto, random, net, concurre
     ()
   }
 }
+
