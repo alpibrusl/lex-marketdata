@@ -81,3 +81,9 @@ A live feed adapter (`src/feed_polygon.lex`) would implement the same `get_quote
 [dependencies]
 "lex-marketdata" = { git = "https://github.com/alpibrusl/lex-marketdata" }
 ```
+
+## License
+
+Copyright (c) 2026 lex-marketdata contributors.
+
+Licensed under the [EUPL-1.2](LICENSE) — the European Union Public Licence, as used across the `lex-*` ecosystem.
